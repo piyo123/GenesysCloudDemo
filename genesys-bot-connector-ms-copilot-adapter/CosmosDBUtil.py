@@ -11,7 +11,7 @@ endpoint = os.getenv("COSMOSDB_ENDPOINT")
 key = os.getenv("COSMOSDB_KEY")
 database_id = "databasename goes here"
 container_id = "contaeiner name goes here"
-partition_key = "partition goes here"
+partition_key = "partition key name goes here"
 
 # Set the total throughput (RU/s) for the database and container
 database_throughput = 1000
