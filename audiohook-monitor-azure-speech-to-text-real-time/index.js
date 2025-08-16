@@ -1,10 +1,3 @@
-/*
- https://developer.genesys.cloud/devapps/audiohook/session-walkthrough
- https://learn.microsoft.com/ja-jp/azure/ai-services/speech-service/how-to-recognize-speech?pivots=programming-language-javascript -> Speechなのでspeakerは分からない。
- https://learn.microsoft.com/ja-jp/azure/ai-services/speech-service/how-to-use-audio-input-streams
- https://learn.microsoft.com/ja-jp/azure/ai-services/speech-service/get-started-stt-diarization?tabs=windows&pivots=programming-language-javascript -> Speakerが複数いる場合はこちら(このファイルはこっちの実装)
-*/
-
 const port = process.env.PORT || 3000
 const express = require('express');
 const app = express();
@@ -14,12 +7,10 @@ const WaveFile = require('wavefile').WaveFile;
 const NUM_OF_BUF = process.env.NUM_OF_BUF || 1
 var audioHookMonitorWS;
 
-app.use(express.static('public'));  // so that user can access /public/index.html as /index.html
+app.use(express.static('public'));
 
 app.get("*", (req, res) => {
-    //console.log(req.headers);
-    //console.log(req.body);
-    res.status(200).send("GET REQUEST SCCEEDED"); // HTTP Status is send to client, but the string will not be shown because 'index.html' will be sent by 'app.use(express.static('public'));'
+    res.status(200).send("GET REQUEST SCCEEDED");
 });
 
 // main entry point
@@ -27,15 +18,13 @@ var server = app.listen(port, () => {
     console.log(`Server listening on port ${server.address().port}. App Version=${process.env.npm_package_version}`);
 });
 
-app.use(express.static('public'));  // so that user can access /public/index.html as /index.html
+app.use(express.static('public'));
 
-const wss = new WebSocket.Server({ server }); // Azure で動作させるためにサーバーを共有する。ローカルならhttpはポート3000 && websocketは8888ポートとかでも動く。
+const wss = new WebSocket.Server({ server });
 
-// muLawのファイルを npm wavefileパッケージのfromMuLaw()を使って16bit Liner PCMにするため（そうしないとAzure Speechが動かない）
-// https://www.npmjs.com/package/wavefile#mu-law
 let wav = new WaveFile();
 
-wss.on('connection', (ws, req) => { // IMPORTANT: argument "ws" means client that connected to the server.
+wss.on('connection', (ws, req) => {
     console.log(`new client connected. IP=${req.socket.remoteAddress}. App Version=${process.env.npm_package_version}`);
     console.log(`${req.method} ${req.headers["host"]} HTTP/${req.httpVersion}`);
     console.log(req.headers);
@@ -62,19 +51,14 @@ wss.on('connection', (ws, req) => { // IMPORTANT: argument "ws" means client tha
                 buf = Buffer.from(event);
                 sumBuf = Buffer.concat([sumBuf, buf]);
             }
-
-            //console.log(`sumBuf.length=${sumBuf.length}`);
             
-            if (sumBuf.length >= 3200 * NUM_OF_BUF) { // NUM_OF_BUF 回に1回まとめてStreamに書き込み（通常は1(毎回)でよい)
+            if (sumBuf.length >= 3200 * NUM_OF_BUF) {
                 wav.fromScratch(2, 16000, "8m", sumBuf);
                 wav.fromMuLaw(); // Decode 8-bit mu-Law as liner 16-bit PCM: 8bitのままだとAzure Speechが認識しない。
                 pushStream.write(wav.toBuffer().buffer.slice());
                 
                 sumBuf = Buffer.alloc(0);
             }
-
-            // boradcast except Audio Hook Monitor
-            //broadcast(event); ArrayBufferを送ることになる。
             
         } else { // received signal data in JSON format
 
@@ -162,9 +146,6 @@ function broadcast(sendData) {
 
 //#####################################################################################
 // Azure Speech Section
-// 2 channel データを渡すと話者は自動で認識してくれるみたい。
-// Genesys NativeやEVTSはそもそも入力Streamが別で入ってくるだろうから、別々で
-// 文字起こししているんだろう。
 //#####################################################################################
 
 const speechSdk = require("microsoft-cognitiveservices-speech-sdk");
@@ -177,7 +158,6 @@ speechConfig.speechRecognitionLanguage = "ja-JP";
 let audioFormat = speechSdk.AudioStreamFormat.getWaveFormat(samplePerSecond, bitsPerSample, numOfChannels, audioFormatTag);
 let pushStream = speechSdk.AudioInputStream.createPushStream();
 let audioConfig = speechSdk.AudioConfig.fromStreamInput(pushStream, audioFormat);
-//let audioConfig = speechSdk.AudioConfig.fromStreamInput(pushStream);
 let conversationTranscriber = new speechSdk.ConversationTranscriber(speechConfig, audioConfig);
 
 conversationTranscriber.sessionStarted = function(s, e) {
@@ -219,15 +199,3 @@ conversationTranscriber.startTranscribingAsync(
         broadcast(`"type":"system", "message": "${err}"`);
     }
 );
-
-
-/* browser output
-TRANSCRIBED: Text=もしもし。 (Speaker ID=Guest-1)
-TRANSCRIBED: Text=これは営繕トラブルじゃなくて、電話をかけてきた人からの声です。電話から喋っています。 (Speaker ID=Guest-1)
-TRANSCRIBED: Text=今度は？ (Speaker ID=Guest-1)
-TRANSCRIBED: Text=携帯を見るとにして。 (Speaker ID=Guest-1)
-TRANSCRIBED: Text=エージェント側のマイクで入力しています。 (Speaker ID=Guest-2)
-TRANSCRIBED: Text=お今度はゲスト二と認識されましたね。 (Speaker ID=Guest-2)
-TRANSCRIBED: Text=やっぱりチャンネル数を2位にしたからかな？ (Speaker ID=Guest-2)
-*/
-
