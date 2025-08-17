@@ -1,0 +1,18 @@
+{
+  "name": "webpubsub-genesyscloudevents-eventhandler",
+  "version": "1.0.1",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@azure/web-pubsub": "^1.2.0",
+    "@azure/web-pubsub-express": "^1.0.6",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0"
+  }
+}

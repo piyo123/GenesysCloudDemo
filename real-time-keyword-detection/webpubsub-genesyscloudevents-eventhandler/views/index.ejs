@@ -1,0 +1,218 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Genesys Cloud Events</title>
+
+        <!-- ↓ アーキテクチャ図拡大効果のためだけ ↓ -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+        <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+        <!-- ↑ アーキテクチャ図拡大効果のためだけ ↑ -->
+
+        <style>
+          /* テーブル表示のため */
+          .table {
+            width: 1800px;
+            font-family: sans-serif;
+            border: 1px solid #ccc;
+          }
+      
+          .header, .row {
+            display: grid;
+            grid-template-columns: 50px 250px 300px 350px 150px 350px 300px;
+          }
+      
+          .header {
+            background-color: #f0f0f0;
+            font-weight: bold;
+          }
+      
+          .body {
+            max-height: 70%;
+            overflow-y: scroll;
+            overflow-x: none;
+          }
+      
+          .cell {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+            border-right: 1px solid #ddd;
+            box-sizing: border-box;
+          }
+      
+          .cell:last-child {
+            border-right: none;
+          }
+        </style>
+    </head>
+    <body>
+        <h1>Genesys Cloud Events - Realtime Keyword Detection</h1>
+        <h3>Genesys Cloud -> AWS EventBridge -> Azure EventGrid -> Azure Web PubSub 
+          (
+            <a href="/images/genesyscloudevents_keyword_detection_architecture.png" data-lightbox="architecture" data-title="Architecture Diagram">Architecture Diagram</a>,&nbsp;
+            <a href="/video-ja.html">Demo Movie (Japanese)</a>, &nbsp;
+            <a href="/video-en.html">Demo Movie (English)</a>
+          )
+        </h3>
+        <h4>Org: NCNL Japan &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="websocket_status"></span></h4>
+        <span>Keyword to detect:&nbsp;&nbsp;</span><input type="text" id="detectKeyword" placeholder="input a keyword to detect" /><hr/>
+
+        <!-- Data Table -->
+        <div class="table">
+          <div class="header" id="header">
+            <div class="cell">#</div>
+            <div class="cell">Datetime (UTC)</div>
+            <div class="cell">Datetime (Local)</div>
+            <div class="cell">Conversation ID</div>
+            <div class="cell">Channel</div>
+            <div class="cell">transcription fragment</div>
+            <div class="cell">Link to Interaction Details</div>
+          </div>
+          <div class="body" id="body"></div>
+      </div>
+    </body>
+
+    <script>
+        // WebSocket 
+        // TODO: Genesys Cloud の 認証が通った後で websocket server の URL を発行するようにする。
+
+        (async function () {          
+          let id = navigator.userAgent;
+          let res = await fetch(`/negotiate?id=${id}`);
+          let data = await res.json();
+          let ws = new WebSocket(data.url);
+
+          ws.onopen = () =>  {
+            console.log('connected');
+            document.getElementById("websocket_status").innerHTML = 'WebSocket Connection: <span style="color:green">CONNECTED</span>';
+          }
+    
+          ws.onmessage = event => {
+            let coreEventJson = event.data;
+            let coreEventJsonObj = JSON.parse(coreEventJson);
+            console.log(coreEventJsonObj);
+            
+            let keyword = document.getElementById("detectKeyword").value;
+            if ( keyword.length <=0 ) return;
+
+            if (coreEventJsonObj.source == "GenesysCloud.AWSEventBridge") {
+              
+              //m.innerText = JSON.stringify(coreEventJsonObj.data, 2);
+              let topicName = coreEventJsonObj.data.gcevent.detail.topicName;
+
+              if ( coreEventJsonObj.data.gcevent["detail-type"] == "v2.conversations.{id}.transcription" 
+                   && coreEventJsonObj.data.gcevent.detail.eventBody.status.status == "SESSION_ONGOING"
+                   && coreEventJsonObj.data.gcevent.detail.eventBody.status.offsetMs > 0 
+                   && coreEventJsonObj.data.gcevent.detail.eventBody?.transcripts !== undefined ) {
+              
+                let conversationId = coreEventJsonObj.data.gcevent.detail.eventBody.conversationId;
+                let eventTime = coreEventJsonObj.data.gcevent.detail.timestamp;
+                let transcription_fragment = coreEventJsonObj.data.gcevent.detail.eventBody.transcripts[0].alternatives[0].transcript;
+                let channel = coreEventJsonObj.data.gcevent.detail.eventBody.transcripts[0].channel;
+                let tmp = {
+                  datetimeUtc: eventTime,
+                  conversationId: conversationId,
+                  channel: channel,
+                  transcription_fragment: transcription_fragment
+                }
+                console.log("=== transcription fragment start ===");
+                console.log(tmp);
+                console.log("=== transcription fragment end ===");
+                
+                if ( transcription_fragment.indexOf(keyword) >= 0 ) {
+                  addRow(tmp);
+                }
+              }
+            }
+          };
+
+          ws.onclose = event => {
+            document.getElementById("websocket_status").innerHTML = 'WebSocket Connection: <span style="color:gray">DISCONNECTED</span>';
+            console.log("disconnected.");
+          };
+
+          ws.onerror = event => {
+            console.error(event);
+            document.getElementById("websocket_status").innerHTML = 'WebSocket Connection: <span style="color:red">ERROR</span>';
+          };
+    
+        })();
+      </script>
+
+      <script>
+        // Table
+
+        var rowCount = 0;
+
+        window.addEventListener('DOMContentLoaded', () => {
+          const header = document.getElementById('header');
+          const body = document.getElementById('body');
+          const headerCells = header.children;
+          const firstRowCells = body.querySelector('.row')?.children;
+
+          if (firstRowCells && headerCells.length === firstRowCells.length) {
+            for (let i = 0; i < headerCells.length; i++) {
+              const width = firstRowCells[i].getBoundingClientRect().width + "px";
+              headerCells[i].style.width = width;
+              firstRowCells[i].style.width = width;
+            }
+          }
+        });
+
+        function addRow(obj) {
+            const body = document.getElementById('body');
+
+            const row = document.createElement('div');
+            row.className = 'row';
+
+            row.innerHTML = `
+                <div class="cell">${++rowCount}</div>
+                <div class="cell">${obj?.datetimeUtc}</div>
+                <div class="cell">${convertUtc2Local(obj?.datetimeUtc)}</div>
+                <div class="cell">${obj?.conversationId}</div>
+                <div class="cell">${obj?.channel}</div>
+                <div class="cell">${obj.transcription_fragment}</div>
+                <div class="cell"><a href="<%= interactionViewPrefix %>${obj?.conversationId}<%= interactionViewSuffix %>" target="_blank">Interaction Deail View</a></div>
+            `;
+
+            body.appendChild(row);
+            body.scrollTop = body.scrollHeight;
+        }
+
+        function convertUtc2Local(isoDatetimeString) {
+            const date = new Date(isoDatetimeString);
+            console.log(date);
+
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // 月は0始まり
+            const day = String(date.getDate()).padStart(2, '0');
+
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
+
+            return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}${getLocalTimezoneOffsetString()}`;  
+        }
+
+        function getLocalTimezoneOffsetString() {
+            const offsetMinutes = new Date().getTimezoneOffset();
+            const sign = offsetMinutes <= 0 ? '+' : '-';
+            const absOffset = Math.abs(offsetMinutes);
+            const hours = String(Math.floor(absOffset / 60)).padStart(2, '0');
+            const minutes = String(absOffset % 60).padStart(2, '0');
+            return `${sign}${hours}:${minutes}`;
+        }
+
+        function test(){
+            var obj = {
+                datetimeUtc: "2025-06-21T04:13:45.003Z",
+                conversationId: "e076732c-2acc-47e6-9bb4-aeb83cd2eef1",
+                channel: "EXTERNAL",
+                transcription_fragment: "あいうえおかきくけこさしすせそ"
+            };
+
+            addRow(obj);
+        }
+      </script>
+</html>

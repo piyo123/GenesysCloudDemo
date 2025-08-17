@@ -359,6 +359,8 @@ __marimo__/
 pyenv.cfg
 .venv/
 .deployment
+.funcignore
+local.settings.json
 
 
 ####################################################################
