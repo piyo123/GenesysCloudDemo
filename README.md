@@ -6,9 +6,9 @@
 
 - Bot Connector -> Call Microsoft Copilot ([Read More](https://github.com/piyo123/GenesysCloudDemo/blob/main/genesys-bot-connector-ms-copilot-adapter/README.md))
 
-- Real Time Keyword Detection (*Publish work in progress*)
+- Real Time Keyword Detection ([Read More](https://github.com/piyo123/GenesysCloudDemo/blob/main/real-time-keyword-detection/README.md))
 
-- Notifications API Tester (*Publish work in progress*)
+- Notifications API Tester ([Read More](https://github.com/piyo123/GenesysCloudDemo/blob/main/notifications-api-tester/README.md))
 
 
 
