@@ -1,0 +1,544 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Genesys Cloud Notifications</title>
+    <script src="https://sdk-cdn.mypurecloud.com/javascript/latest/purecloud-platform-client-v2.min.js"></script>
+    <style type="text/css">
+        body {
+            font-size: 9pt;
+            font-family: "Roboto", sans-serif;
+        }
+        .container {
+            display: flex;
+            height: 70%;
+        }
+        .info {
+            flex: 1;
+            border-right: 1px solid #ccc;
+            padding: 10px;
+            overflow: scroll;
+            text-wrap: nowrap;
+        }
+        .topicname {
+            flex: 1;
+            border-right: 1px solid #ccc;
+            padding: 10px;
+            overflow: scroll;
+            text-wrap: nowrap;
+        }
+        .details {
+            flex: 2;
+            padding: 10px;
+            overflow: scroll;
+            text-wrap: nowrap;
+            background-color: #191724;
+        }
+        .topicname div {
+            cursor: pointer;
+        }
+        .topicname div:hover {
+            background-color: #f0f0f0;
+        }
+        .line-separated-info {
+            width: 100%;
+            padding: 5px;
+            border-bottom: 1px solid #ccc;
+        }
+        .line-separated-topic {
+            width: 100%;
+            padding: 5px;
+            border-bottom: 1px solid #ccc;
+        }
+        .topic-selected {
+            background-color: #a0a0a0;
+        }
+        .copybutton {
+            position: absolute;
+            width: 50px;
+            cursor: pointer;
+        }
+        .copied {
+            position: absolute;
+            color: #fff;
+            font-size: 12pt;
+            display: none;
+        }
+        .settingContainer {
+            display: flex;
+            height: 20%;
+            border-bottom: 1px solid #909090;
+        }
+        .settingContainer div {
+            overflow: auto;
+            padding: 5px;
+        }
+        #topicSubscribe {
+            width: 40%;
+            border-right: 1px solid #c0c0c0;
+            padding: 10px;
+        }
+        #topicList {
+            width: 55%;
+            padding: 10px;
+        }
+        .blueButton {
+            height: 20px;
+            border: 1px solid #1e253b;
+            background-color: #87a0f1;
+            border-radius: 5px;
+        }
+        input[type="button"]:active {
+            background-color: #ccc;
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Geneys Cloud Notifications</h1>
+
+    <div class="settingContainer">
+        <div id="topicSubscribe">
+            <label for="topicToSubscribe">新規サブスクライプ</label><span>&nbsp;(&nbsp;<a href="https://developer.genesys.cloud/notificationsalerts/notifications/available-topics" target="_blank">トピック一覧</a>&nbsp;)&nbsp;</span><br/>
+            <input type="text" id="topicToSubscribe" placeholder="v2.users.{id}.conversations" size="80"/>
+            <input type="button" id="subscribeButton" class="blueButton" value="Subscribe">
+            <div id="currentUserId"></div>
+            <div id="activeConversationIds"></div>
+        </div>
+        <div style="padding:10px;width:100px">
+            <P>サブスクライブ中<br>トピック</p>
+            <input type="button" id="unsbscribeAllButton" class="blueButton" value="Unsubscribe All"/>
+        </div>
+        <div id="topicList"></div>
+    </div>
+
+    <div class="container">
+        <div class="info" id="info"></div>
+        <div class="topicname" id="topicname">検出されたトピックはまだありません</div>
+        <div class="details" id="details"><span style="color:white">左側の検出されたトピックのいずれかを選択してください。</span></div>
+    </div>
+
+</body>
+
+</html>
+
+<script type="text/javascript">
+
+    var platformClient = null;
+    var notificationApiInstance = null;
+    var meApiInstance = null;
+    var conversationsApiInstance = null;
+
+    var infoContainer = null;
+    var topicnameContainer = null;
+    var detailsContainer = null;
+    
+    var ws; // WebSocket Client
+    
+    var jsonArray = [];
+    var rowIndex = 0;
+    var currentUserId = null;
+    var channelId = null;
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        infoContainer = document.getElementById("info");
+        topicnameContainer = document.getElementById("topicname");
+        detailsContainer = document.getElementById("details");
+        topicSubscribeContainer = document.getElementById("topicSubscribe");
+        topicListContainer = document.getElementById("topicList");
+
+        // position of copy button
+        window.addEventListener("resize", putCopyBtn);
+
+        // subscribe/unsubscribe button
+        document.getElementById("subscribeButton").addEventListener("click", subscribeNew);
+        document.getElementById("unsbscribeAllButton").addEventListener("click", unsbscribeAll);
+        
+
+        (async() => {
+            await loginImplicitGrant();
+            await getMyUserId();
+            await subscribe();
+            await getSubscribingTopics();
+            await getActiveConversations();
+            
+
+        })();
+
+        setInterval(getActiveConversations, 3000);
+    
+    });
+
+    /*
+    ******************************************************************************************************
+     Genesys Cloud APIs
+    ******************************************************************************************************
+    */
+
+    async function loginImplicitGrant() {
+
+        // Const & Variables
+        const clientId = "The client id of OAuth client in your Genesys Cloud organization goes here";
+        const redirectUri = "Your redirect URL goes here";
+        let environment = 'mypurecloud.jp';
+
+        // Set Genesys Cloud objects
+        platformClient = require('platformClient');
+        client = platformClient.ApiClient.instance;
+        client.setEnvironment(environment);
+        
+        try {
+            const ret = await client.loginImplicitGrant(clientId, redirectUri);
+            outputInfo("implicit login suceeded.");
+        } catch (e) {
+            outputInfo("implicit login failed.", e);
+        }
+    }
+    
+    async function getMyUserId() {
+        try {
+            meApiInstance = new platformClient.UsersApi();            
+            const me = await meApiInstance.getUsersMe();
+            currentUserId = me.id;
+            document.getElementById("currentUserId").innerHTML = `<b>Current User Id:</b><br/>${currentUserId}`;
+
+            const copyButton = document.createElement("button");
+            copyButton.innerHTML = "Copy";
+            copyButton.addEventListener("click", async() => {
+                await navigator.clipboard.writeText(currentUserId);
+                outputInfo("copied current user id.");
+            });
+            document.getElementById("currentUserId").appendChild(copyButton);
+
+            outputInfo(`current user is ${me.name}(${me.id})`);
+        } catch (e) {
+            outputInfo("failed to get current user's info", e);
+        }
+    }
+
+    // subscribe function
+    async function subscribe() {
+
+        var wsUri = null;
+
+        // topic to subscribe
+        if (currentUserId) {
+            subscribeTopic = `v2.users.${currentUserId}?presence&conversations&badges.chats&conversations.messages`;
+        } else {
+            outputInfo(`cannot configure topics to subscribe because user id is ${currentUserId}`);
+            return;
+        }
+
+        try {
+
+            // Notification API Instance
+            notificationApiInstance = new platformClient.NotificationsApi();
+
+            // Create Chennel & subscribe transcription
+            const channelCreationRet = await notificationApiInstance.postNotificationsChannels();
+            
+            // set websocket info
+            wsUri = channelCreationRet.connectUri;
+            channelId = channelCreationRet.id;
+            
+            outputInfo("Channel created.");
+
+        } catch (e) {
+            ouptputInfo("channel creation failed. See console log for details.", e);
+            return;
+        }
+
+        try {
+
+            // WebSocket Client
+            ws = new WebSocket(wsUri);
+            outputInfo(`websocket connect uri = ${wsUri}`);
+
+            // handle websocket events
+            ws.addEventListener("open", (event) => {
+                outputInfo("websocket connection opened.");
+            });
+
+            ws.addEventListener("message", (event) => {
+                
+                let json = JSON.parse(event.data);
+                let retTopic = json.topicName;
+
+                console.log(`message event received. topicName = ${retTopic}`);
+                
+                if (json.eventBody.message != "WebSocket Heartbeat" && retTopic != "channel.metadata") {
+                    if (rowIndex == 0) { // 初回
+                        topicnameContainer.innerHTML = "";
+                    }
+                    outputTopicNameAndStoreJson(retTopic, json.eventBody);
+                }
+
+            });
+
+            ws.addEventListener("close", (event) => {
+                outputInfo("websocket connection closed.");
+            });
+
+            ws.addEventListener("error", (event) => {
+                outputInfo("websocket connection error. See console log for details.", e);
+            });  
+
+        } catch (e) {
+            outputInfo("websocket connect failed. See console log for details.", e);
+            return;
+        }
+
+        try {
+
+            // subscribe transcription topic
+            let topicParam = [{id: subscribeTopic}];
+            const subscribeRet = await notificationApiInstance.postNotificationsChannelSubscriptions(channelId, topicParam);
+            outputInfo(`subscribe succeeded. topic = ${subscribeTopic}`);
+
+        } catch (e) {
+            outputInfo("subscribe failed. See console log for details.", e);
+            return;
+        }
+    }
+
+    // Retrieve subscribing topics
+    async function getSubscribingTopics() {
+
+        if (!notificationApiInstance) {
+            notificationApiInstance = new platformClient.NotificationsApi();
+        }
+
+        try {
+
+            const ret = await notificationApiInstance.getNotificationsChannelSubscriptions(channelId);    
+            outputInfo("retrieved currently subscribing topics.");
+
+            const topics = [];
+            if (ret.entities) {
+                ret.entities.forEach(entity => {
+                    topics.push(entity.id);
+                });
+            }
+            topicListContainer.innerHTML = topics.toString().replaceAll(",", "<br/>");
+
+                
+        } catch (e) {
+            outputInfo("failed to retrieve subscribing topics. see console for details.", e);
+        }
+    }
+
+    async function subscribeNew() {
+
+        const topic = document.getElementById("topicToSubscribe").value.trim();
+
+        if (topic == "") {
+            outputInfo("No topic specified to subscribe.");
+            return;
+        }
+
+        if (!notificationApiInstance) {
+            notificationApiInstance = new platformClient.NotificationsApi();
+        }
+
+        try {
+
+            let body = [{ id: topic}];
+            let opts = { 
+                'ignoreErrors': false // Boolean | Optionally prevent throwing of errors for failed permissions checks.
+            };
+
+            const ret = await notificationApiInstance.postNotificationsChannelSubscriptions(channelId, body, opts);
+            outputInfo(`subscribed topic succeeded: ${topic}`);
+
+            await getSubscribingTopics();
+
+            document.getElementById("topicToSubscribe").value = "";
+
+        } catch (e) {
+            outputInfo(`failed to subscribe topic ${topic}. see console for details.`, e);
+        }
+
+    }
+
+    async function unsbscribeAll() {
+
+        if (!notificationApiInstance) {
+            notificationApiInstance = new platformClient.NotificationsApi();
+        }
+
+        try {
+
+            const ret = await notificationApiInstance.deleteNotificationsChannelSubscriptions(channelId);
+            outputInfo(`unsubscribe all topics succeeded.`);
+
+            await getSubscribingTopics();
+
+            topicListContainer.innerHTML = "No subscribing topic(s).";
+            
+        } catch (e) {
+            outputInfo("failed to unsubscribe topics. see console for details.", e);
+        }
+    }
+
+    async function getActiveConversations() {
+
+        if (!conversationsApiInstance) {
+            conversationsApiInstance = new platformClient.ConversationsApi();
+        }
+
+        try {
+            
+            let opts = {
+                //"communicationType": "voice"
+            }
+            
+            const ret = await conversationsApiInstance.getConversations(opts);
+            const idsArray = window.JSONPath({path:'$.entities[*].id', json: ret});
+
+            var str = "";
+            idsArray.forEach((id) =>{
+                str += '<span class="convId">' + id + '</span><button class="convidcopybtn">copy</button><br/>';
+            });
+
+            document.getElementById("activeConversationIds").innerHTML = "<b>Active Conversation(s):</b><br/>" + str;
+
+            var buttons = document.querySelectorAll(".convidcopybtn");
+            buttons.forEach(button => {
+                button.addEventListener("click", async () => {
+                    const value = button.previousSibling.textContent;
+                    await navigator.clipboard.writeText(value);
+                    outputInfo("copied conversation id.");
+                });
+            });
+
+
+        } catch (e) {
+            outputInfo("failed to retrieve active conversation(s)", e);
+        }
+
+    }
+
+    /*
+    ******************************************************************************************************
+        Utilities
+    ******************************************************************************************************
+    */
+
+    function outputInfo(content, error = null) {
+        if (error) {
+            console.error(content);
+            console.error(error);
+            infoContainer.innerHTML += '<div class="line-separated-info" style="color:red;">' + content + "</div>";
+        } else {
+            console.log(content);
+            infoContainer.innerHTML += '<div class="line-separated-info">' + content + "</div>";
+        }
+        scrollToBottom(infoContainer);
+    }
+
+    function outputTopicNameAndStoreJson(topic, json) {
+        jsonArray.push(json);
+        const topicNameDiv = document.createElement("div");
+        topicNameDiv.className = "line-separated-topic";
+        topicNameDiv.textContent = topic;
+        
+        const jsonString = JSON.stringify(jsonArray[rowIndex], null, "    ");
+        topicNameDiv.addEventListener("click", () => {
+            (async() => {
+
+                var topicDivs = document.querySelectorAll(".line-separated-topic");
+                topicDivs.forEach(element => {
+                    element.classList.remove("topic-selected");
+                });
+                topicNameDiv.classList.add("topic-selected");
+
+                var jsonHtml = await window.getHighlightedHtml(jsonString);
+                detailsContainer.innerHTML = jsonHtml;
+
+                detailsContainer.scrollTop = 0;
+
+                putCopyBtn();
+                
+            })();
+        });
+        topicnameContainer.appendChild(topicNameDiv);
+        scrollToBottom(topicnameContainer);
+        console.log(json);
+        rowIndex++;
+    }
+
+    function putCopyBtn() {
+        var copiedText = null;
+        if (document.getElementById("copied")) {
+            copiedText = document.getElementById("copied");
+        } else {
+            copiedText = document.createElement("div");
+            copiedText.className = "copied";
+            copiedText.id = "copied";
+            copiedText.innerText = "Copied!";
+            detailsContainer.appendChild(copiedText);
+        }
+        
+        copiedText.style.top = detailsContainer.getBoundingClientRect().top + 30;
+        copiedText.style.left = detailsContainer.getBoundingClientRect().right - 140;
+        
+
+        var buttonDiv = null;
+        if (document.getElementById("copybutton")) {
+            buttonDiv = document.getElementById("copybutton");
+        } else {
+            buttonDiv = document.createElement("img");
+            buttonDiv.className = "copybutton";
+            buttonDiv.src = "../img/copy_white.png";
+            buttonDiv.alt = "COPY"
+            buttonDiv.id = "copybutton"
+            buttonDiv.addEventListener("click", () => {copyToClipboard_JSON();});
+            detailsContainer.appendChild(buttonDiv);
+        }
+        buttonDiv.style.top = detailsContainer.getBoundingClientRect().top + 10;
+        buttonDiv.style.left = detailsContainer.getBoundingClientRect().right - 80;
+    }
+
+    async function copyToClipboard_JSON() {
+        const textToCopy = detailsContainer.innerText;
+        try {
+            await navigator.clipboard.writeText(textToCopy);
+            const copiedText = document.getElementById("copied");
+            copiedText.style.display = "block";
+            setTimeout(() => {
+                copiedText.style.display = "none";
+            }, 1000);
+        } catch (e) {
+            outputInfo("copy failed.", true);
+        }
+    }
+
+    function scrollToBottom(divContainer) {
+        if (divContainer.tagName.toLowerCase() === "div") {
+            divContainer.scrollTop = divContainer.scrollHeight;
+        }
+    }
+
+</script>
+
+<script type="module">
+    import {JSONPath} from "https://cdn.jsdelivr.net/npm/jsonpath-plus@10.0.0/dist/index-browser-esm.min.js";
+    window.JSONPath = JSONPath;
+</script>
+
+<!-- highlighting -->
+<script type="module">
+    // be sure to specify the exact version
+    import { codeToHtml } from 'https://esm.sh/shiki@1.0.0'
+
+    async function getHighlightedHtml(code, options) {
+        return await codeToHtml(code, {
+            lang: 'json',
+            theme: 'rose-pine'
+        })
+    }
+
+    window.getHighlightedHtml = getHighlightedHtml;
+</script>
