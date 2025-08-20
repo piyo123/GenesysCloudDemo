@@ -6,4 +6,4 @@ Please note that this tool uses the OAuth 2.0 Implicit Grant flow for authentica
 
 **Initial implementation: February 2025*
 
-*this document is to be updated.*
+![Notifications APIs Tester](https://gsolar.z11.web.core.windows.net/tools/img/NotificationsAPITester.png)
