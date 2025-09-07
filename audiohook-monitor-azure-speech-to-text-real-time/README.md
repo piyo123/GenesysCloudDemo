@@ -3,6 +3,7 @@
 ## Audiohook Monitor -> Azure AI Speech-to-Text voice transcription in real-time
 This solution uses [Genesys AudioHook](https://developer.genesys.cloud/devapps/audiohook/) to send incoming voice from Genesys Cloud to the Azure Web App and transcribes conversations in real time.
 Genesys Cloud and the Web App communicate via WebSocket, and the Web App calls Azure AI Speech service through HTTP REST APIs.
+Also, this is a simple feasibility-only test and is single-session only. Session management isn’t implemented.
 
 **Initial implementation: August 2024*
 
