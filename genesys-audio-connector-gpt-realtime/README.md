@@ -5,4 +5,4 @@ This solution implements [Genesys Audio Connector](https://help.mypurecloud.com/
 
 **Initial implementation: September 2025*
 
-You can try the demonstration [here](https://gsolar.kazumadachi.com/tools/webmessage_botconnector_mscopilot.html).
+You can listen to sample conversation in Japanese [here](https://gsolar.kazumadachi.com/tools/genesys-audio-connector-gpt-realtime.html).
