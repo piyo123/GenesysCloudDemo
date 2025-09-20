@@ -10,5 +10,5 @@
 
 - Notifications API Tester ([Read More](https://github.com/piyo123/GenesysCloudDemo/blob/main/notifications-api-tester/README.md))
 
-
+- Audio Connector -> gpt-realtime ([Read More](https://github.com/piyo123/GenesysCloudDemo/blob/main/genesys-audio-connector-gpt-realtime/README.md))
 
