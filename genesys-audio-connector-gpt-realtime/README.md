@@ -1,7 +1,7 @@
 # Genesys Cloud Demo
 
 ## Audio Connector -> gpt-realtime
-This solution implements [Genesys Audio Connector](https://help.mypurecloud.com/articles/about-audio-connector/) feature to offload conversations to OpenAI gpt-realtime.
+This solution implements [Genesys Audio Connector](https://help.mypurecloud.com/articles/about-audio-connector/) feature to offload conversations to OpenAI gpt-realtime, using WebSocket, although gpt realtime supports both WebRTC and WebSocket.
 
 **Initial implementation: September 2025*
 
