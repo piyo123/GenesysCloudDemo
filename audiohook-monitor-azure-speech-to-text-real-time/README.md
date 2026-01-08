@@ -7,5 +7,5 @@ Also, this is a simple feasibility-only test and is single-group/room only. Grou
 
 **Initial implementation: August 2024*
 
-![Architecture](https://gsolar.kazumadachi.com/tools/img/audiohookmonitor-azure-ai-speech-to-text-architecture.png)
+![Architecture](../_images/audiohookmonitor-azure-ai-speech-to-text-architecture.png)
 See the demonstration video [here](https://gsolar.kazumadachi.com/tools/audiohookmonitor_azureaispeech_stt.html).
