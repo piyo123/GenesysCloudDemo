@@ -5,7 +5,7 @@ This solution allows you to detect conversations where a predefined keyword is s
 
 **Initial implementation: June 2025*
 
-![Architecture](https://gsolar.kazumadachi.com/tools/img/genesyscloudevents_keyword_detection_architecture_with_kigou.png)
+![Architecture](../_images/genesyscloudevents_keyword_detection_architecture_with_kigou.png)
 
 **(a) Amazon EventBridge** 
 - Receive events via WebSocket from Genesys Notification Service
