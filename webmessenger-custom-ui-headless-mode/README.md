@@ -9,3 +9,7 @@ Please make sure that you set "headlessMode" to true in your messenger settings.
 ![sample](../_images/webmessenger_custom_ui.png)
 
 You can see the demonstrations [here](https://gsolar.kazumadachi.com/tools/genesys_web_messenger_custom_ui.html).
+
+## References
+- https://developer.genesys.cloud/commdigital/digital/webmessaging/messengersdk/SDKCommandsEvents/messagingServicePlugin
+- https://developer.genesys.cloud/commdigital/digital/webmessaging/websocketapi
