@@ -9,3 +9,13 @@ Also, this is a simple feasibility-only test and is single-group/room only. Grou
 
 ![Architecture](../_images/audiohookmonitor-azure-ai-speech-to-text-architecture.png)
 See the demonstration video [here](https://gsolar.kazumadachi.com/tools/audiohookmonitor_azureaispeech_stt.html).
+
+> [!IMPORTANT]
+> **Security Notice**  
+> This sample code does not include validation of incoming requests using a client secret.
+> In a production environment, you should always configure a Secret Value in the Genesys Cloud integration settings and implement request validation.
+> This is essential to verify the authenticity of the connection source and to prevent impersonation or tampering of requests.
+>
+> For detailed guidance, see:
+> - https://developer.genesys.cloud/devapps/audiohook/security#client-authentication
+> - https://developer.genesys.cloud/devapps/audiohook/session-walkthrough#establishing-connection
