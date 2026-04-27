@@ -1,4 +1,4 @@
-# 本来は Redis などで管理するべきだが、簡単のためメモリ上で管理する。（単一サーバー）
+# Ideally managed by Redis or similar, but since this is a single server, using in-memory storage for simplicity.
 
 import asyncio
 from typing import Dict
