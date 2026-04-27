@@ -25,4 +25,4 @@ In this example, I used OpenAI's [gpt-realtime][] in transcription-only mode, al
 [Genesys Bot Transcription Connector]: https://help.genesys.cloud/articles/configure-and-activate-the-bot-transcription-connector-integration/
 [Genesys Audio Connector]: https://help.genesys.cloud/articles/about-audio-connector/
 [Genesys Audiohook]: https://help.genesys.cloud/articles/about-audiohook-monitor/
-[audiohook-spec]: https://developer.genesys.cloud/devapps/audiohook/protocol-reference
+[audiohook-spec]: https://developer.genesys.cloud/devapps/audiohook/
