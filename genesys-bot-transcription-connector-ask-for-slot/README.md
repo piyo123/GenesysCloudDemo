@@ -1,7 +1,7 @@
 # Genesys Cloud Demo
 
 ## Bot Transcription Connector for "Ask for Slot"
-This solution implements [Genesys Bot Transcription Connector][] feature and enables BYO-ASR (Bring Your Own Automatic Speech Recognition) for the "Ask for Slot" action, which allows a bot built with Architect in Genesys Cloud to collect information from a caller in a Bot Flow.
+This solution implements [Genesys Bot Transcription Connector][] feature and enables BYO-ASR (Bring Your Own Automatic Speech Recognition) for the ["Ask for Slot" action][rc-ask-for-slot-action], which allows a bot built with Architect in Genesys Cloud to collect information from a caller in a Bot Flow.
 
 Bot Transcription Connector is built on top of [Genesys Audio Connector][], which sends the caller's voice to a specified web application for processing or integration with other bots. Genesys Audio Connector itself is built on [Genesys Audiohook][], which streams audio data from all participants in an interaction, whereas Audio Connector streams only the caller's voice.
 
@@ -26,3 +26,4 @@ In this example, I used OpenAI's [gpt-realtime][] in transcription-only mode, al
 [Genesys Audio Connector]: https://help.genesys.cloud/articles/about-audio-connector/
 [Genesys Audiohook]: https://help.genesys.cloud/articles/about-audiohook-monitor/
 [audiohook-spec]: https://developer.genesys.cloud/devapps/audiohook/
+[rc-ask-for-slot-action]: https://help.genesys.cloud/articles/ask-for-slot-action/
