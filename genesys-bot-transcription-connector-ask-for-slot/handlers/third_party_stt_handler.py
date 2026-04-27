@@ -128,43 +128,6 @@ async def openai_ws_event_handler(session: kazSession):
         return
     #finally:
 
-""""
-Event Type (gpt-4o-transcribe)
-[OPENAI RECEIVED EVENT] event type: session.created
-[OPENAI RECEIVED EVENT] event type: session.updated
-[OPENAI RECEIVED EVENT] event type: input_audio_buffer.speech_started
-[OPENAI RECEIVED EVENT] event type: input_audio_buffer.speech_stopped
-[OPENAI RECEIVED EVENT] event type: input_audio_buffer.committed
-[OPENAI RECEIVED EVENT] event type: conversation.item.created
-[OPENAI RECEIVED EVENT] event type: response.created
-[OPENAI RECEIVED EVENT] event type: conversation.item.input_audio_transcription.failed
-[OPENAI RECEIVED EVENT] event type: response.output_item.added
-[OPENAI RECEIVED EVENT] event type: response.content_part.added
-[OPENAI RECEIVED EVENT] event type: response.audio_transcript.delta
-[OPENAI RECEIVED EVENT] event type: response.audio.done
-[OPENAI RECEIVED EVENT] event type: response.audio_transcript.done, Received data: Hi there! How can
-[OPENAI RECEIVED EVENT] event type: response.content_part.done
-[OPENAI RECEIVED EVENT] event type: response.output_item.done
-[OPENAI RECEIVED EVENT] event type: response.done
-
-EVENT LIST (gpt-realtime)
-[OPENAI RECEIVED EVENT] event type: session.created
-[OPENAI RECEIVED EVENT] event type: session.updated
-[OPENAI RECEIVED EVENT] event type: input_audio_buffer.speech_started
-[OPENAI RECEIVED EVENT] event type: input_audio_buffer.speech_stopped
-[OPENAI RECEIVED EVENT] event type: input_audio_buffer.committed
-[OPENAI RECEIVED EVENT] event type: conversation.item.created
-[OPENAI RECEIVED EVENT] event type: response.created
-[OPENAI RECEIVED EVENT] event type: response.output_item.added
-[OPENAI RECEIVED EVENT] event type: response.content_part.added
-[OPENAI RECEIVED EVENT] event type: response.text.delta
-[OPENAI RECEIVED EVENT] event type: response.text.done
-[OPENAI RECEIVED EVENT] event type: response.content_part.done
-[OPENAI RECEIVED EVENT] event type: response.output_item.done
-[OPENAI RECEIVED EVENT] event type: response.done
-[OPENAI RECEIVED EVENT] event type: conversation.item.input_audio_transcription.completed
-"""
-
 ####################################################################
 # Create Json to be sent back to Genesys Cloud
 ####################################################################

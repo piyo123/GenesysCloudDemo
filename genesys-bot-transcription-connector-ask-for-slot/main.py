@@ -18,7 +18,7 @@ async def process_request(conn: ServerConnection, request: Request):
 	return None
 
 async def main():
-	async with websockets.serve(					# / でも /svc でもすべてのパスで受け付ける。svcに絞っているのは、bot_transcription_connector_ws_handler.py 
+	async with websockets.serve(
 		bot_transcription_connector_ws_handler,
 		"0.0.0.0",
 		8000,
@@ -31,11 +31,10 @@ async def main():
 			print(f"[STARTUP INFO] Application version: {env.APP_VERSION}")
 			print(f"[STARTUP INFO] TRANSCRIPTION_LANGUAGE: {env.TRANSCRIPTION_LANGUAGE}")
 
-		await asyncio.Future()  # サーバーが終了しないように待機
+		await asyncio.Future()
 
 async def get_app_info():
 	return f"Web App is working. App version is {env.APP_VERSION}.\n"
 
-# main.py が実行されたとき
 if __name__ == "__main__":
 	asyncio.run(main())
