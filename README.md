@@ -13,3 +13,5 @@
 - Audio Connector -> gpt-realtime ([Read More](https://github.com/piyo123/GenesysCloudDemo/blob/main/genesys-audio-connector-gpt-realtime/README.md))
 
 - Web Messenger Custom User Interface ( Headless Mode ) ([Read More](https://github.com/piyo123/GenesysCloudDemo/blob/main/webmessenger-custom-ui-headless-mode/README.md))
+
+- Bot Tanscription Connector for "Ask for Slot" Action ([Read More](https://github.com/piyo123/GenesysCloudDemo/blob/main/genesys-bot-transcription-connector-ask-for-slot/README.md))
