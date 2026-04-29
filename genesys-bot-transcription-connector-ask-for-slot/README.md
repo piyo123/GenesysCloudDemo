@@ -9,6 +9,8 @@ You can find the specifications for Genesys Audiohook, Audio Connector, and Bot 
 
 In this example, I used OpenAI's [gpt-realtime][] in transcription-only mode, although gpt-realtime is originally a speech-to-speech model.
 
+You can listen to sample conversation [here][sample-page]
+
 **Initial implementation: April 2026*
 
 > [!IMPORTANT]
@@ -27,3 +29,4 @@ In this example, I used OpenAI's [gpt-realtime][] in transcription-only mode, al
 [Genesys Audiohook]: https://help.genesys.cloud/articles/about-audiohook-monitor/
 [audiohook-spec]: https://developer.genesys.cloud/devapps/audiohook/
 [rc-ask-for-slot-action]: https://help.genesys.cloud/articles/ask-for-slot-action/
+[sample-page]: https://gsolar.z11.web.core.windows.net/tools/genesys-bot-transcription-connector-ask-for-slot.html

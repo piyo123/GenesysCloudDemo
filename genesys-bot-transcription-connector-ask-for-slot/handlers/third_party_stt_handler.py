@@ -107,7 +107,10 @@ async def openai_ws_event_handler(session: kazSession):
     try:
         # handle websocket events
         async for event in connection:
-            if event.type == "conversation.item.input_audio_transcription.completed":
+            if event.type == "input_audio_buffer.speech_started":
+                # update session status
+                session.speechDetected = True
+            elif event.type == "conversation.item.input_audio_transcription.completed":
                 print(f"[OPENAI RECEIVED EVENT] event type: {event.type}, Received data: {event.transcript}")
                 session.transcriptionCompleted = True
                 session.transriptionData = event.transcript

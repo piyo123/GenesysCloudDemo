@@ -47,8 +47,8 @@ async def bot_transcription_connector_ws_handler(ws: ServerConnection):
                 length = len(message)
                 print(f"[MESSAGE] From Genesys Cloud. {session.genesysConversationId}: Binary Data ({length} Bytes)")
 
-                # speech detected
-                if not session.speechDetected: # first time
+                # when speech is detected
+                if session.speechDetected:
                     # create return JSON
                     resJson = {
                         "version": "2",
@@ -72,9 +72,6 @@ async def bot_transcription_connector_ws_handler(ws: ServerConnection):
 
                     # count up sequence
                     session.serverSequence += 1
-
-                    # update session status
-                    session.speechDetected = True
 
                 # send audio data to openai
                 await send_data_to_openai(session, message)
